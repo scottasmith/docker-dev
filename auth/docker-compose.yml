@@ -1,0 +1,41 @@
+version: '3.5'
+
+networks:
+  web-transport:
+    external: true
+    name: web-transport
+  auth:
+
+volumes:
+  mysql:
+    driver: local
+
+services:
+  app:
+    image: registry:443/php:7.2.13-dev-r1
+    volumes:
+      - ${APP_CODE}:/var/www
+      - ./html:/var/www/html
+    environment:
+      - XDEBUG_REMOTE_HOST=172.17.0.1
+      - PHP_IDE_CONFIG=serverName=auth
+    networks:
+      auth:
+      web-transport:
+        aliases:
+          - auth.app.internal
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:5.7
+    environment:
+      - MYSQL_DATABASE=authentication
+      - MYSQL_USER=authentication
+      - MYSQL_PASSWORD=s3cure
+      - MYSQL_ROOT_PASSWORD=s3cure
+    volumes:
+      - mysql:/var/lib/mysql
+      - ./mysql/mysql-entrypoint.d:/docker-entrypoint-initdb.d
+    networks:
+      - auth
+    restart: unless-stopped

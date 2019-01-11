@@ -1,0 +1,29 @@
+version: '3.5'
+
+networks:
+  web-transport:
+    external: true
+    name: web-transport
+
+services:
+  proxy:
+    image: nginx
+    volumes:
+      - ./sites:/etc/nginx/conf.d
+      - ./html:/etc/nginx/errors
+      - ./logs:/var/log/nginx
+    ports:
+      - 80:80
+    networks:
+      web-transport:
+        aliases:
+          - frontend-proxy.service.internal
+    restart: unless-stopped
+
+  maildev:
+    image: djfarrelly/maildev
+    networks:
+      web-transport:
+        aliases:
+          - mail.service.internal
+    restart: unless-stopped
