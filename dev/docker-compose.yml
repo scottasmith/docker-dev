@@ -4,6 +4,9 @@ networks:
   web-transport:
     external: true
     name: web-transport
+  ldap:
+    external: true
+    name: ldap
 
 services:
   proxy:
@@ -27,3 +30,16 @@ services:
         aliases:
           - mail.service.internal
     restart: unless-stopped
+
+  ldap:
+    image: openfrontier/openldap-server
+    environment:
+      - SLAPD_PASSWORD=secret
+      - SLAPD_DOMAIN=dev.local
+      #- SLAPD_FORCE_RECONFIGURE=true
+    volumes:
+      - ./ldap/ldif:/etc/ldap/prepopulate/
+    ports:
+      - 389:389
+    networks:
+      - ldap
