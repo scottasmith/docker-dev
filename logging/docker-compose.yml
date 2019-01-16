@@ -1,0 +1,52 @@
+version: "3.5"
+
+networks:
+  logging:
+    external: true
+    name: logging
+  internal:
+    
+volumes:
+  elastic_data:
+    driver: local
+
+services:
+  ## Linux needs to have the max_map_count kernel param changed for elasticsearch to work:
+  ## sudo sysctl -w vm.max_map_count=262144 
+  ## echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.d/max-map-count.conf
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.5.4
+    ports:
+      - 9200:9200
+    restart: unless-stopped
+    environment:
+      - cluster.name=docker-cluster
+    volumes:
+      - elastic_data:/usr/share/elasticsearch/data
+    networks:
+      - internal
+      - logging
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:6.5.4
+    ports:
+      - "12201:12201/udp"
+      - "9600:9600"
+    volumes:
+      - ./logstash/pipeline:/usr/share/logstash/pipeline
+    command: logstash -f /usr/share/logstash/pipeline/ --config.reload.automatic
+    restart: unless-stopped
+    networks:
+      logging:
+        aliases:
+          - logstash.logging.internal
+      internal:
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:6.5.4
+    ports:
+      - 5601:5601
+    restart: unless-stopped
+    networks:
+      - internal
+      - logging

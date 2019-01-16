@@ -7,6 +7,9 @@ networks:
   ldap:
     external: true
     name: ldap
+  logging:
+    external: true
+    name: logging
   auth:
 
 volumes:
@@ -24,6 +27,7 @@ services:
       - PHP_IDE_CONFIG=${PHP_IDE_CONFIG}
     extra_hosts:
       - "admin.local.lan:127.0.0.1"
+      - "graylog-server:192.168.1.10"
     networks:
       auth:
       ldap:
@@ -31,7 +35,12 @@ services:
         aliases:
           - admin.local.lan
           - admin.app.internal
+      logging:
     restart: unless-stopped
+    logging:
+      driver: gelf
+      options:
+        gelf-address: udp://localhost:12201
 
   mysql:
     image: mysql:5.7

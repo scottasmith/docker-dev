@@ -1,0 +1,10 @@
+#Run this first
+Add vm max map count
+```
+$ echo "vm.max_map_count=262144" | sudo tee -a /etc/sysctl.conf
+```
+
+Then enable it until next restart:
+```
+sudo sysctl -w vm.max_map_count=262144
+```
