@@ -1,0 +1,48 @@
+version: '3.5'
+
+services:
+  app:
+    image: registry:5000/php:7.2-dev
+    volumes:
+      - ${APP_CODE}:/var/www
+    environment:
+      - XDEBUG_REMOTE_HOST=${XDEBUG_REMOTE_HOST}
+      - PHP_IDE_CONFIG=${PHP_IDE_CONFIG}
+    labels:
+      traefik.docker.network: web
+      traefik.enable: "true"
+      traefik.backend: "comms-app"
+      traefik.basic.frontend.rule: "Host:comms.local.home.lan"
+      traefik.basic.port: 80
+      traefik.basic.protocol: http
+    networks:
+      - web
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      - MYSQL_DATABASE=admin
+      - MYSQL_USER=admin
+      - MYSQL_PASSWORD=s3cure
+      - MYSQL_ROOT_PASSWORD=s3cure
+    volumes:
+      - mysql:/var/lib/mysql
+    networks:
+      - auth
+    restart: unless-stopped
+
+  redis:
+    image: redis:latest
+    networks:
+      - auth
+    restart: unless-stopped
+
+networks:
+  web:
+    external: true
+    name: web
+
+volumes:
+  mysql:
+    driver: local
